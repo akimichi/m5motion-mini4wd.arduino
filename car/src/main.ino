@@ -1,0 +1,63 @@
+#include "M5Unified.h"
+#include "M5GFX.h"
+#include "M5AtomicMotion.h"
+
+M5AtomicMotion AtomicMotion;
+
+void setup()
+{
+    auto cfg = M5.config();
+    M5.begin(cfg);
+
+    M5.Display.setTextColor(GREEN);
+    M5.Display.setTextDatum(middle_center);
+    M5.Display.setTextSize(2);
+    M5.Display.drawString("Atomic Init", M5.Display.width() / 2, M5.Display.height() / 2);
+
+    m5::board_t board = M5.getBoard();
+
+    uint8_t sda = 0, scl = 0;
+
+    if (board == m5::board_t::board_M5AtomLite || board == m5::board_t::board_M5AtomMatrix ||
+        board == m5::board_t::board_M5AtomEcho) {
+        sda = 25;
+        scl = 21;
+    } else if (board == m5::board_t::board_M5AtomS3 || board == m5::board_t::board_M5AtomS3R ||
+               board == m5::board_t::board_M5AtomS3Lite || board == m5::board_t::board_M5AtomS3RExt ||
+               board == m5::board_t::board_M5AtomS3RCam) {
+        sda = 38;
+        scl = 39;
+    }
+
+    while (!AtomicMotion.begin(&Wire, M5_ATOMIC_MOTION_I2C_ADDR, sda, scl, 100000)) {
+        M5.Display.clear();
+        M5.Display.drawString("Init Fail", M5.Display.width() / 2, M5.Display.height() / 2);
+        Serial.println("Atomic Motion begin failed");
+        delay(1000);
+    }
+
+    M5.Display.clear();
+    M5.Display.drawString("Motion", M5.Display.width() / 2, M5.Display.height() / 2);
+
+    Serial.println("Atomic Motion Test");
+}
+
+void loop()
+{
+    for (int ch = 0; ch < 2; ch++) {
+        AtomicMotion.setMotorSpeed(ch, 127);
+        Serial.printf("Motor Channel %d: %d \n", ch, AtomicMotion.getMotorSpeed(ch));
+    }
+    delay(1000);
+    for (int ch = 0; ch < 2; ch++) {
+        AtomicMotion.setMotorSpeed(ch, -127);
+        Serial.printf("Motor Channel %d: %d \n", ch, AtomicMotion.getMotorSpeed(ch));
+    }
+    delay(1000);
+    for (int ch = 0; ch < 2; ch++) {
+        AtomicMotion.setMotorSpeed(ch, 0);
+        Serial.printf("Motor Channel %d: %d \n", ch, AtomicMotion.getMotorSpeed(ch));
+    }
+    delay(1000);
+} 
+

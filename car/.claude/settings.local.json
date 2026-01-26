@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.m5stack.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(pio run:*)",
+      "Bash(pio pkg search:*)"
+    ]
+  }
+}
