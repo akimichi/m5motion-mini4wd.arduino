@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pio run:*)",
+      "Bash(pio lib search:*)",
+      "Bash(pio pkg search:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(pio pkg install:*)"
+    ]
+  }
+}
