@@ -1,8 +1,46 @@
 #include "M5Unified.h"
 #include "M5GFX.h"
 #include "M5AtomicMotion.h"
+#include <esp_now.h>
+#include <WiFi.h>
+
+// ESP-NOW受信データ構造体（controllerと同じ形式）
+typedef struct __attribute__((packed)) {
+    uint8_t  deviceId;
+    int32_t  encoderValue;
+    int32_t  encoderIncValue;
+    uint8_t  buttonState;
+    uint32_t timestamp;
+} EncoderData_t;
 
 M5AtomicMotion AtomicMotion;
+
+// ESP-NOW受信データ
+volatile int32_t receivedEncoderValue = 0;
+volatile bool dataReceived = false;
+
+// ESP-NOW受信コールバック
+void onDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
+    if (len == sizeof(EncoderData_t)) {
+        EncoderData_t data;
+        memcpy(&data, incomingData, sizeof(EncoderData_t));
+        receivedEncoderValue = data.encoderValue;
+        dataReceived = true;
+    }
+}
+
+// ESP-NOW初期化
+static bool initEspNow() {
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+
+    if (esp_now_init() != ESP_OK) {
+        return false;
+    }
+
+    esp_now_register_recv_cb(onDataRecv);
+    return true;
+}
 
 void setup()
 {
@@ -37,27 +75,36 @@ void setup()
     }
 
     M5.Display.clear();
-    M5.Display.drawString("Motion", M5.Display.width() / 2, M5.Display.height() / 2);
+    M5.Display.drawString("Motion OK", M5.Display.width() / 2, M5.Display.height() / 2);
 
-    Serial.println("Atomic Motion Test");
+    Serial.println("Atomic Motion OK");
+
+    // ESP-NOW初期化
+    if (initEspNow()) {
+        Serial.println("ESP-NOW OK");
+    } else {
+        Serial.println("ESP-NOW NG");
+        M5.Display.clear();
+        M5.Display.setTextColor(RED);
+        M5.Display.drawString("ESP-NOW NG", M5.Display.width() / 2, M5.Display.height() / 2);
+    }
 }
 
 void loop()
 {
-    for (int ch = 0; ch < 2; ch++) {
-        AtomicMotion.setMotorSpeed(ch, 127);
-        Serial.printf("Motor Channel %d: %d \n", ch, AtomicMotion.getMotorSpeed(ch));
+    if (dataReceived) {
+        // encoderValueを-127〜127にクランプ
+        int32_t speed = receivedEncoderValue;
+        if (speed > 127) speed = 127;
+        if (speed < -127) speed = -127;
+
+        // channel 1のモーター速度を設定
+        AtomicMotion.setMotorSpeed(1, speed);
+
+        Serial.printf("Encoder: %d, Motor Speed: %d\n", receivedEncoderValue, speed);
+
+        dataReceived = false;
     }
-    delay(1000);
-    for (int ch = 0; ch < 2; ch++) {
-        AtomicMotion.setMotorSpeed(ch, -127);
-        Serial.printf("Motor Channel %d: %d \n", ch, AtomicMotion.getMotorSpeed(ch));
-    }
-    delay(1000);
-    for (int ch = 0; ch < 2; ch++) {
-        AtomicMotion.setMotorSpeed(ch, 0);
-        Serial.printf("Motor Channel %d: %d \n", ch, AtomicMotion.getMotorSpeed(ch));
-    }
-    delay(1000);
+    delay(10);
 } 
 

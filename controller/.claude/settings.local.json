@@ -6,7 +6,9 @@
       "Bash(pio pkg search:*)",
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "Bash(pio pkg install:*)"
+      "Bash(pio pkg install:*)",
+      "Bash(git -C /home/emile/projects/m5motion-mini4wd.arduino log --oneline -10)",
+      "Bash(git -C /home/emile/projects/m5motion-mini4wd.arduino show --stat)"
     ]
   }
 }
