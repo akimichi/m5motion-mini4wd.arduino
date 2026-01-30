@@ -42,6 +42,21 @@ static bool initEspNow() {
     return true;
 }
 
+// LCD表示更新
+void updateDisplay(int32_t encoderValue, int32_t speed) {
+    M5.Display.fillRect(0, 0, 128, 128, BLACK);
+    M5.Display.setTextColor(WHITE, BLACK);
+    M5.Display.setTextDatum(middle_center);
+    M5.Display.setTextSize(2);
+
+    // エンコーダー値を表示
+    M5.Display.drawString(String(encoderValue), 64, 40);
+
+    // モーター速度を表示
+    M5.Display.setTextSize(1);
+    M5.Display.drawString("Spd:" + String(speed), 64, 90);
+}
+
 void setup()
 {
     auto cfg = M5.config();
@@ -100,6 +115,9 @@ void loop()
 
         // channel 1のモーター速度を設定
         AtomicMotion.setMotorSpeed(1, speed);
+
+        // LCD表示を更新
+        updateDisplay(receivedEncoderValue, speed);
 
         Serial.printf("Encoder: %d, Motor Speed: %d\n", receivedEncoderValue, speed);
 

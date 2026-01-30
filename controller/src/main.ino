@@ -11,6 +11,12 @@
 #define DEVICE_ID 0x01
 #define SEND_INTERVAL_MS 50
 
+// ブザー関連
+#define BUZZER_THRESHOLD 130
+#define BUZZER_FREQ 2000      // ブザー周波数（Hz）
+#define BUZZER_ON_MS 100      // ブザーON時間（ms）
+#define BUZZER_OFF_MS 100     // ブザーOFF時間（ms）
+
 // ESP-NOW送信データ構造体
 typedef struct __attribute__((packed)) {
     uint8_t  deviceId;        // デバイス識別子
@@ -35,6 +41,10 @@ int32_t encoderIncValue = 0;
 
 // Used to detect button state changes
 bool lastEncoderBtnValue = 0;
+
+// ブザー状態管理
+unsigned long lastBuzzerToggle = 0;
+bool buzzerState = false;
 
 // Wait until MiniEncoderC is ready
 static void waitMiniEncoderCReady() {
@@ -68,7 +78,8 @@ static bool initEspNow() {
 // ESP-NOWデータ送信
 static void sendEncoderData(int32_t encoderValue, int32_t encoderIncValue, bool buttonState) {
     sendData.deviceId = DEVICE_ID;
-    sendData.encoderValue = encoderValue;
+    // encoderValueを-127〜127の範囲にクランプ
+    sendData.encoderValue = constrain(encoderValue, -127, 127);
     sendData.encoderIncValue = encoderIncValue;
     sendData.buttonState = buttonState ? 1 : 0;
     sendData.timestamp = millis();
@@ -174,6 +185,24 @@ void loop() {
     if (M5.BtnA.wasPressed()) {
       // Reset encoder value to 0 when BtnA is pressed
       encoder.resetCounter();
+    }
+
+    // ブザー制御（エンコーダー値が閾値を超えた場合）
+    if (encoderValue >= BUZZER_THRESHOLD || encoderValue <= -BUZZER_THRESHOLD) {
+        unsigned long now = millis();
+        if (now - lastBuzzerToggle >= (buzzerState ? BUZZER_ON_MS : BUZZER_OFF_MS)) {
+            buzzerState = !buzzerState;
+            if (buzzerState) {
+                M5.Speaker.tone(BUZZER_FREQ, BUZZER_ON_MS);
+            }
+            lastBuzzerToggle = now;
+        }
+    } else {
+        // 閾値内に戻ったらブザーを停止
+        if (buzzerState) {
+            M5.Speaker.stop();
+            buzzerState = false;
+        }
     }
 
     delay(30);
