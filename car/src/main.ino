@@ -54,7 +54,7 @@ void updateDisplay(int32_t encoderValue, int32_t speed) {
 
     // モーター速度を表示
     M5.Display.setTextSize(1);
-    M5.Display.drawString("Spd:" + String(speed), 64, 90);
+    M5.Display.drawString("Speed:" + String(speed), 64, 90);
 }
 
 void setup()
@@ -119,7 +119,7 @@ void loop()
         // LCD表示を更新
         updateDisplay(receivedEncoderValue, speed);
 
-        Serial.printf("Encoder: %d, Motor Speed: %d\n", receivedEncoderValue, speed);
+        Serial.printf("Speed: %d, Motor Speed: %d\n", receivedEncoderValue, speed);
 
         dataReceived = false;
     }
