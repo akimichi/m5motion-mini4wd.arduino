@@ -21,3 +21,11 @@ m5motion-mini4wd.arduino
 M5Stickに接続したロータリーエンコーダHATモジュールを利用してミニ四駆の前後方向の速度を制御する。
 
 
+## 通信
+
+carモジュールとcontrollerモジュールの通信にはESP-NOWを利用する。
+玩具用途のため、通信は暗号化せずブロードキャストで送信している。
+
+## ライセンス
+
+MIT License。詳細は [LICENSE](LICENSE) を参照のこと。

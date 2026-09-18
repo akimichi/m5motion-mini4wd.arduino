@@ -53,7 +53,7 @@ pio run -t upload && pio device monitor
 - 目標速度に応じたLED色変更
 - M5Stick-CのボタンAで目標速度とエンコーダーカウンターをリセット
 
-## 今後の実装予定
+## 通信
 
-- car側（M5Atom + M5AtomicMotion）との無線通信（WiFi/BLE）
-- エンコーダー値に基づくモーター速度指令の送信
+- car側（M5Atom + M5AtomicMotion）とはESP-NOWで通信する（実装済み）
+- 玩具用途のため暗号化せず、ブロードキャストアドレス宛に `EncoderData_t` を送信する
